@@ -1,36 +1,41 @@
 import api from './api';
 
-export const functions = {
+const functions = {
   getAll: async () => {
     try {
-      const response = await api.get('/notes/');
+      const response = await api.get('/notas');
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
+  
   create: async (data) => {
     try {
-      const response = await api.post('/notes/', data);
+      const response = await api.post('/notas', data);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
+  
   update: async (id, data) => {
     try {
-      const response = await api.put(`/notes/${id}/`, data);
+      const response = await api.put(`/notas/${id}`, data);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   },
+  
   delete: async (id) => {
     try {
-      const response = await api.delete(`/notes/${id}/`);
+      const response = await api.delete(`/notas/${id}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
   }
 };
+
+export default functions;

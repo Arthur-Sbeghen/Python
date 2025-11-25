@@ -1,11 +1,18 @@
 import random
-
 from fastapi import FastAPI, HTTPException, Query
-
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Annotated
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def root():
@@ -27,51 +34,54 @@ def get_number(
 
 db = []
 
-@app.post("/items")
-def add_item(body: dict):
-      item_name = body.get("name")
-      if not item_name:
-          raise HTTPException(status_code=400, detail="O campo 'nome' é obrigatório")
+class Nota(BaseModel):
+    name: str
+    data: str = None  # Campo opcional para data
 
-      if item_name in items_db:
-          raise HTTPException(status_code=400, detail="O item já existe")
+@app.post("/notas")
+def add_item(nota: Nota):
+    if not nota.name:
+        raise HTTPException(status_code=400, detail="O campo 'nome' é obrigatório")
 
-      items_db.append(item_name)
-      return {"message": "O item foi adicionado com sucesso", "item": item_name}
+    if nota.name in db:
+        raise HTTPException(status_code=400, detail="O item já existe")
 
-@app.get("/items")
+    db.append(nota.name)
+    return {"message": "O item foi adicionado com sucesso", "item": nota.name}
+
+@app.get("/notas")
 def get_items():
     return {"items": db}
 
-@app.put("/items/{item}")
-def update_item(name: str, body: dict):
+@app.put("/notas/{name}")
+def update_item(name: str, nota: Nota):
     if name not in db:
         raise HTTPException(status_code=404, detail="Item não encontrado")
     
-    new_name = body.get('name')
-
-    if not new_name:
+    if not nota.name:
         raise HTTPException(status_code=400, detail="O campo 'nome' é obrigatório")
     
-    if new_name in db:
+    if nota.name in db and nota.name != name:
         raise HTTPException(status_code=400, detail="O item já existe")
     
     index = db.index(name)
-    db[index] = new_name
+    db[index] = nota.name
 
     return {
-        "status": 200,
-        "message": f"O item {name} foi atualizado para {new_name}"
+        "message": f"O item {name} foi atualizado para {nota.name}"
     }
 
-@app.delete("/items/{item}")
+@app.delete("/notas/{item}")
 def delete_item(item: str):
-    if name not in db:
+    if item not in db:  # CORREÇÃO: mudado de 'name' para 'item'
         raise HTTPException(status_code=404, detail="Item não encontrado")
     
     db.remove(item)
 
     return {
-        "status": 200,
         "message": f"O item {item} foi removido com sucesso"
     }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
