@@ -1,8 +1,43 @@
 import random
+import time
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Annotated
+from typing import Annotated, Optional
+from google import genai
+
+client = genai.Client(api_key="aaaa")
+
+def gerar_descricao(titulo: str) -> str:
+    prompt = f"""
+    Você é um sistema que gera descrições de notas.
+
+    Gere APENAS UMA descrição curta, direta e objetiva para a nota abaixo.
+    NÃO gere listas.
+    NÃO gere variações.
+    NÃO ofereça opções.
+    NÃO use aspas.
+    NÃO explique nada.
+
+    Título da nota: {titulo}
+
+    Responda apenas com a descrição.
+    """
+    
+    MAX_RETRIES = 5
+
+    for _ in range(MAX_RETRIES):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+            return response.text.strip()
+        except Exception:
+            time.sleep(2)
+
+    return "Descrição não pôde ser gerada no momento."
+
 
 app = FastAPI()
 
@@ -18,13 +53,17 @@ app.add_middleware(
 def root():
     return {"message": "Olá Mundo!"}
 
+
 @app.get("/random-between/")
 def get_number(
-        min_value: Annotated[int, Query(title="Valor mínimo", ge=1, le=1000)] = 1,
-        max_value: Annotated[int, Query(title="Valor máximo", ge=1, le=1000)] = 1000
-    ):
+    min_value: Annotated[int, Query(title="Valor mínimo", ge=1, le=1000)] = 1,
+    max_value: Annotated[int, Query(title="Valor máximo", ge=1, le=1000)] = 1000
+):
     if min_value >= max_value:
-        raise HTTPException(status_code=400, detail="O valor mínimo deve ser menor que o valor máximo.")
+        raise HTTPException(
+            status_code=400,
+            detail="O valor mínimo deve ser menor que o valor máximo."
+        )
     
     return {
         "min": min_value,
@@ -32,55 +71,71 @@ def get_number(
         "random": random.randint(min_value, max_value)
     }
 
+
 db = []
+
 
 class Nota(BaseModel):
     name: str
-    data: str = None  # Campo opcional para data
+    data: Optional[str] = None
+
+
+class NotaDB(BaseModel):
+    name: str
+    data: Optional[str]
+    descricao: str
+
 
 @app.post("/notas")
 def add_item(nota: Nota):
-    if not nota.name:
+    if not nota.name.strip():
         raise HTTPException(status_code=400, detail="O campo 'nome' é obrigatório")
 
-    if nota.name in db:
+    if any(n["name"] == nota.name for n in db):
         raise HTTPException(status_code=400, detail="O item já existe")
 
-    db.append(nota.name)
-    return {"message": "O item foi adicionado com sucesso", "item": nota.name}
+    descricao = gerar_descricao(nota.name)
+
+    nova_nota = {
+        "name": nota.name,
+        "data": nota.data,
+        "descricao": descricao
+    }
+
+    db.append(nova_nota)
+
+    return {
+        "message": "Nota criada com sucesso",
+        "item": nova_nota
+    }
+
 
 @app.get("/notas")
 def get_items():
     return {"items": db}
 
+
 @app.put("/notas/{name}")
 def update_item(name: str, nota: Nota):
-    if name not in db:
-        raise HTTPException(status_code=404, detail="Item não encontrado")
-    
-    if not nota.name:
-        raise HTTPException(status_code=400, detail="O campo 'nome' é obrigatório")
-    
-    if nota.name in db and nota.name != name:
-        raise HTTPException(status_code=400, detail="O item já existe")
-    
-    index = db.index(name)
-    db[index] = nota.name
+    for item in db:
+        if item["name"] == name:
+            item["name"] = nota.name
+            item["data"] = nota.data
+            item["descricao"] = gerar_descricao(nota.name)
+            return {"message": "Nota atualizada com sucesso", "item": item}
 
-    return {
-        "message": f"O item {name} foi atualizado para {nota.name}"
-    }
+    raise HTTPException(status_code=404, detail="Item não encontrado")
 
-@app.delete("/notas/{item}")
-def delete_item(item: str):
-    if item not in db:  # CORREÇÃO: mudado de 'name' para 'item'
-        raise HTTPException(status_code=404, detail="Item não encontrado")
-    
-    db.remove(item)
 
-    return {
-        "message": f"O item {item} foi removido com sucesso"
-    }
+@app.delete("/notas/{name}")
+def delete_item(name: str):
+    for item in db:
+        if item["name"] == name:
+            db.remove(item)
+            return {"message": "Nota removida com sucesso"}
+
+    raise HTTPException(status_code=404, detail="Item não encontrado")
+
 
 if __name__ == "__main__":
     import uvicorn

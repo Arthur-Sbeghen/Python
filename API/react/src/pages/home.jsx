@@ -1,5 +1,6 @@
 "use client"
 
+import "./home.css";
 import { useState, useEffect } from 'react';
 import functions from '../api/functions';
 
@@ -56,7 +57,7 @@ const Home = () => {
             
         } catch (error) {
             console.error('Erro ao criar tarefa:', error);
-            alert(error.detail || 'Erro ao criar tarefa');
+            alert(error || 'Erro ao criar tarefa');
         } finally {
             setLoading(false);
         }
@@ -78,7 +79,7 @@ const Home = () => {
     };
 
     return (
-        <div>
+        <>
             <header>
                 <h1>Notas 📆</h1>
             </header>
@@ -119,12 +120,14 @@ const Home = () => {
                         <div>
                             {tarefas.map((tarefa, index) => (
                                 <div key={index}>
-                                    <span>{tarefa}</span>
+                                    <span>{tarefa.name}</span>
+                                    <small>{tarefa.descricao}</small>
+                                    <span>{tarefa.data}</span>
                                     <button 
-                                        onClick={() => handleDelete(tarefa)}
-                                        disabled={loading}
+                                    onClick={() => handleDelete(tarefa.name)}
+                                    disabled={loading}
                                     >
-                                        🗑️
+                                    🗑️
                                     </button>
                                 </div>
                             ))}
@@ -134,7 +137,7 @@ const Home = () => {
                     )}
                 </section>
             </main>
-        </div>
+        </>
     );
 };
 
