@@ -49,9 +49,13 @@
 ## Pré-requisitos
 
 :warning: [Python >= 3.12](https://www.python.org/downloads/)
+
 :warning: [Node >= 22.21.1](https://nodejs.org/pt/download)
+
 :warning: [Token - Bot Discord](https://discordapp.com/developers/applications/)
+
 :warning: [Token - Gemini](https://ai.google.dev/gemini-api/docs/tokens?hl=pt-br&lang=python)
+
 :warning: [Git](https://git-scm.com/downloads)
 
 ## Como rodar a aplicação :arrow_forward:
@@ -83,9 +87,13 @@ npm run dev
 Acesse a URL gerada que funcionará.
 
 Para rodar o Bot de Discord:
+
 Abra o ```bot.py``` da pasta ```Discord/```
+
 Coloque seu token de Bot no placeholder do ```bot.py```: ```bot.run("Aqui")```
+
 Abra o terminal da pasta ```Discord/```
+
 Execute:
 ```
 pip install discord.py
@@ -93,7 +101,9 @@ py main.py
 ```
 
 Para rodar os Fundamentos:
+
 Abra o terminal da pasta ```Fundamentos_Testes```
+
 Execute
 ```
 py fundamentos.py
@@ -104,18 +114,26 @@ py input.py
 ```
 
 Para rodar o GUI:
+
 Abra o terminal da pasta ```GUI/```
+
 Execute:
 ```
 python app_gui.py
 ```
 
 Para rodar a IA:
+
 Abra o arquivo ```helper_functions.py``` da pasta ```IA/```
+
 Coloque seu token Gemini no placeholder dele: ```client = genai.Client(api_key="Coloque_Aqui")```
+
 Abra o arquivo ```teste.py``` da mesma pasta
+
 Altere o placeholder de ```print_llm_response("Coloque aqui o que você deseja da IA")```
+
 Abra o terminal da pasta ```IA/```
+
 Execute:
 ```
 pip install google-genai
@@ -123,7 +141,9 @@ py teste.py
 ```
 
 Para rodar o jogo Life:
+
 Abra o terminal da pasta ```Life/```
+
 Execute:
 ```
 pip install numpy matplotlib
