@@ -2,7 +2,7 @@ import time
 import random
 from google import genai
 
-client = genai.Client(api_key="key")
+client = genai.Client(api_key="aaa")
 
 def print_llm_response(prompt):
     MAX_RETRIES = 5
@@ -36,7 +36,7 @@ def get_llm_response(prompt):
                 contents=prompt
             )
             return response.text
-         except genai.errors.APIError as e:
+        except genai.errors.APIError as e:
             return f"Erro da API do Gemini: {e}"
         except Exception as e:
             return f"Erro inesperado: {e}"

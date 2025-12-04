@@ -154,12 +154,9 @@ py main.py
 ```
 OU
 ```
-py main.py --gosper --tamanho-grade 150
+py main.py --tamanho-grade 128 --intervalo 500 --planador
 ```
-OU
-```
-python conway_game.py --planador --intervalo 10
-```
+
 
 ## Linguagens, dependências e libs utilizadas :books:
 
